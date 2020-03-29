@@ -22,8 +22,12 @@ function love.load()
         vsync = true
     })
 
+    paddleW = 5
+    paddleH = 20
     player1Score = 0
     player2Score = 0
+    player1X = 10
+    player2X = VIRTUAL_WIDTH - 10
     player1Y = 30
     player2Y = VIRTUAL_HEIGHT - 50
     ballX = VIRTUAL_WIDTH / 2 - 2
@@ -55,12 +59,16 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
-    if ballX > VIRTUAL_WIDTH or ballX < 0 then
+    if ballY > VIRTUAL_HEIGHT or ballY < 0 then
+        ballDY = -ballDY
+    end
+
+    if ballX < player1X + paddleW and ballX > player1X and ballY < player1Y + paddleH and ballY > player1Y then
         ballDX = -ballDX
     end
 
-    if ballY > VIRTUAL_HEIGHT or ballY < 0 then
-        ballDY = -ballDY
+    if ballX < player2X + paddleW and ballX > player2X and ballY < player2Y + paddleH and ballY > player2Y then
+        ballDX = -ballDX
     end
 
     if gameState == 'play' then
@@ -94,8 +102,8 @@ function love.draw()
     love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30,
         VIRTUAL_HEIGHT / 3)
 
-    love.graphics.rectangle('fill', 10, player1Y, 5, 20)
-    love.graphics.rectangle('fill', VIRTUAL_WIDTH - 10, player2Y, 5, 20)
+    love.graphics.rectangle('fill', player1X, player1Y, paddleW, paddleH)
+    love.graphics.rectangle('fill', player2X, player2Y, paddleW, paddleH)
     love.graphics.rectangle('fill', ballX, ballY, 4, 4)
 
     push:apply('end')
