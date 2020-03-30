@@ -38,6 +38,7 @@ function love.load()
 
     player1Score = 0
     player2Score = 0
+    servingPlayer = 1
 
     gameState = 'start'
 end
@@ -49,36 +50,61 @@ function love.keypressed(key)
 
     if key == 'enter' or key == 'return' then
         if gameState == 'start' then
+            gameState = 'serve'
+        elseif gameState == 'serve' then
             gameState = 'play'
-        else
-            gameState = 'start'
-            
-            ball:reset()
         end
     end
 end
 
 function love.update(dt)
-    if ball.y < 0 then
-        ball.y = 0
-        ball.dy = -ball.dy
-    end
+    if gameState == 'serve' then
+        -- before switching to play, initialize ball's velocity based
+        -- on player who last scored
+        ball.dy = math.random(-50, 50)
+        if servingPlayer == 1 then
+            ball.dx = math.random(140, 200)
+        else
+            ball.dx = -math.random(140, 200)
+        end
+    elseif gameState == 'play' then
+        if ball.y < 0 then
+            ball.y = 0
+            ball.dy = -ball.dy
+        end
 
-    if ball.y + ball.height > VIRTUAL_HEIGHT then
-        ball.y = VIRTUAL_HEIGHT - ball.height
-        ball.dy = -ball.dy
-    end
+        if ball.y + ball.height > VIRTUAL_HEIGHT then
+            ball.y = VIRTUAL_HEIGHT - ball.height
+            ball.dy = -ball.dy
+        end
 
-    if ball:collides(player1) then
-        ball.dx = -ball.dx * BALL_SPEED_INCREASE
-        ball.x = player1.x + player1.width
-        ball.dy = math.min(100, math.max(-100, ball.dy + player1.dy / 5))
-    end
+        if ball:collides(player1) then
+            ball.dx = -ball.dx * BALL_SPEED_INCREASE
+            ball.x = player1.x + player1.width
+            ball.dy = math.min(100, math.max(-100, ball.dy + player1.dy / 5))
+        end
 
-    if ball:collides(player2) then
-        ball.dx = -ball.dx * BALL_SPEED_INCREASE
-        ball.x = player2.x - ball.width
-        ball.dy = math.min(100, math.max(-100, ball.dy + player2.dy / 5))
+        if ball:collides(player2) then
+            ball.dx = -ball.dx * BALL_SPEED_INCREASE
+            ball.x = player2.x - ball.width
+            ball.dy = math.min(100, math.max(-100, ball.dy + player2.dy / 5))
+        end
+
+        if ball.x < 0 then
+            servingPlayer = 1
+            player2Score = player2Score + 1
+            ball:reset()
+            gameState = 'serve'
+        end
+
+        if ball.x > VIRTUAL_WIDTH then
+            servingPlayer = 2
+            player1Score = player1Score + 1
+            ball:reset()
+            gameState = 'serve'
+        end
+
+        ball:update(dt)
     end
 
     if love.keyboard.isDown('w') then
@@ -97,10 +123,6 @@ function love.update(dt)
         player2.dy = 0
     end
 
-    if gameState == 'play' then
-        ball:update(dt)
-    end
-
     player1:update(dt)
     player2:update(dt)
 end
@@ -110,13 +132,21 @@ function love.draw()
 
     love.graphics.clear(40/255, 45/255, 52/255, 1)
     love.graphics.setFont(smallFont)
-    love.graphics.printf('Ola, pong!', 0, 20, VIRTUAL_WIDTH, 'center')
 
-    love.graphics.setFont(scoreFont)
-    love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, 
-        VIRTUAL_HEIGHT / 3)
-    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30,
-        VIRTUAL_HEIGHT / 3)
+    displayScore()
+
+    if gameState == 'start' then
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Welcome to Pong!', 0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
+    elseif gameState == 'serve' then
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 
+            0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
+    elseif gameState == 'play' then
+        -- no UI messages to display in play
+    end
 
     player1:render()
     player2:render()
@@ -129,8 +159,15 @@ function love.draw()
 end
 
 function displayFPS()
-    -- simple FPS display across all states
     love.graphics.setFont(smallFont)
     love.graphics.setColor(0, 1, 0, 1)
     love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
+end
+
+function displayScore()
+    love.graphics.setFont(scoreFont)
+    love.graphics.print(tostring(player1Score), VIRTUAL_WIDTH / 2 - 50, 
+        VIRTUAL_HEIGHT / 3)
+    love.graphics.print(tostring(player2Score), VIRTUAL_WIDTH / 2 + 30,
+        VIRTUAL_HEIGHT / 3)
 end
