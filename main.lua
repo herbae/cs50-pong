@@ -13,8 +13,11 @@ VIRTUAL_WIDTH = 432
 VIRTUAL_HEIGHT = 243
 
 PADDLE_SPEED = 200
+BALL_SPEED_INCREASE = 1.05
 
 function love.load()
+    love.window.setTitle("PONG")
+
     love.graphics.setDefaultFilter('nearest', 'nearest')
     smallFont = love.graphics.newFont('font.ttf', 8)
     scoreFont = love.graphics.newFont('font.ttf', 32)
@@ -56,17 +59,27 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
-    --[[if ballY > VIRTUAL_HEIGHT or ballY < 0 then
-        ballDY = -ballDY
+    if ball.y < 0 then
+        ball.y = 0
+        ball.dy = -ball.dy
     end
 
-    if ballX < player1X + paddleW and ballX > player1X and ballY < player1Y + paddleH and ballY > player1Y then
-        ballDX = -ballDX
+    if ball.y + ball.height > VIRTUAL_HEIGHT then
+        ball.y = VIRTUAL_HEIGHT - ball.height
+        ball.dy = -ball.dy
     end
 
-    if ballX < player2X + paddleW and ballX > player2X and ballY < player2Y + paddleH and ballY > player2Y then
-        ballDX = -ballDX
-    end]]
+    if ball:collides(player1) then
+        ball.dx = -ball.dx * BALL_SPEED_INCREASE
+        ball.x = player1.x + player1.width
+        ball.dy = math.min(100, math.max(-100, ball.dy + player1.dy / 5))
+    end
+
+    if ball:collides(player2) then
+        ball.dx = -ball.dx * BALL_SPEED_INCREASE
+        ball.x = player2.x - ball.width
+        ball.dy = math.min(100, math.max(-100, ball.dy + player2.dy / 5))
+    end
 
     if love.keyboard.isDown('w') then
         player1.dy = -PADDLE_SPEED
@@ -110,5 +123,14 @@ function love.draw()
 
     ball:render()
 
+    displayFPS()
+
     push:apply('end')
+end
+
+function displayFPS()
+    -- simple FPS display across all states
+    love.graphics.setFont(smallFont)
+    love.graphics.setColor(0, 1, 0, 1)
+    love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
 end
