@@ -22,6 +22,7 @@ function love.load()
 
     love.graphics.setDefaultFilter('nearest', 'nearest')
     smallFont = love.graphics.newFont('font.ttf', 8)
+    matchFont = love.graphics.newFont('font.ttf', 16)
     scoreFont = love.graphics.newFont('font.ttf', 32)
     love.graphics.setFont(smallFont)
 
@@ -160,10 +161,11 @@ function love.draw()
             0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'match' then
-        love.graphics.setFont(smallFont)
+        love.graphics.setFont(matchFont)
         love.graphics.printf('Player ' .. tostring(winner) .. ' wins!',
             0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to start a new match!', 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Press Enter to start a new match!', 0, 40, VIRTUAL_WIDTH, 'center')
     end
 
     player1:render()
