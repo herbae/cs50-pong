@@ -15,6 +15,8 @@ VIRTUAL_HEIGHT = 243
 PADDLE_SPEED = 200
 BALL_SPEED_INCREASE = 1.05
 
+POINTS_TO_WIN = 3
+
 function love.load()
     love.window.setTitle("PONG")
 
@@ -39,6 +41,7 @@ function love.load()
     player1Score = 0
     player2Score = 0
     servingPlayer = 1
+    winner = 0
 
     gameState = 'start'
 end
@@ -53,14 +56,26 @@ function love.keypressed(key)
             gameState = 'serve'
         elseif gameState == 'serve' then
             gameState = 'play'
+        elseif gameState == 'match' then
+            gameState = 'serve'
+            player1Score = 0
+            player2Score = 0
         end
     end
 end
 
 function love.update(dt)
     if gameState == 'serve' then
-        -- before switching to play, initialize ball's velocity based
-        -- on player who last scored
+        if player1Score == POINTS_TO_WIN then
+            winner = 1
+            gameState = 'match'
+        end
+
+        if player2Score == POINTS_TO_WIN then
+            winner = 2
+            gameState = 'match'
+        end
+
         ball.dy = math.random(-50, 50)
         if servingPlayer == 1 then
             ball.dx = math.random(140, 200)
@@ -144,8 +159,11 @@ function love.draw()
         love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!", 
             0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
-    elseif gameState == 'play' then
-        -- no UI messages to display in play
+    elseif gameState == 'match' then
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Player ' .. tostring(winner) .. ' wins!',
+            0, 10, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to start a new match!', 0, 20, VIRTUAL_WIDTH, 'center')
     end
 
     player1:render()
